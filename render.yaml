@@ -1,0 +1,22 @@
+# Render Blueprint: Tailscale exit node.
+#
+# Deployed as a background worker, not a web service: it has no public URL,
+# no inbound port, and no HTTP health endpoint. Tailscale only needs outbound
+# connectivity. Workers have no free tier; Starter is the smallest plan.
+#
+# After the first deploy, Render prompts for TS_AUTHKEY (sync: false).
+services:
+  - type: worker
+    name: tailscale-exit-node
+    runtime: docker
+    plan: starter
+    region: virginia            # exit traffic egresses from this region
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    autoDeployTrigger: commit
+    maxShutdownDelaySeconds: 30
+    envVars:
+      - key: TS_AUTHKEY
+        sync: false           # set in the dashboard, never in this file
+      - key: TS_HOSTNAME
+        value: render-exit
