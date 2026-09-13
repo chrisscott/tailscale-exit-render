@@ -6,10 +6,10 @@ your Tailscale devices egresses from the Render region you pick.
 Secure by default, and nothing that isn't needed:
 
 - **No public surface.** Deployed as a Render *worker*, so there is no URL,
-  no inbound port, and no HTTP status page. Tailscale only needs outbound
+  no inbound port. Tailscale only needs outbound
   connectivity.
 - **Unprivileged.** `tailscaled` runs as a non-root user in userspace
-  networking mode. No `NET_ADMIN`, no `/dev/net/tun`, no iptables.
+  networking mode.
 - **Pinned, verified binaries.** `tailscaled` and `tailscale` are copied from
   the official `tailscale/tailscale` image at a pinned version. No download
   step, no extra packages beyond CA certificates.
@@ -26,11 +26,11 @@ Secure by default, and nothing that isn't needed:
    plan that runs them.
 3. This repo pushed to GitHub or GitLab so Render can build it.
 
-## 1. Tailnet policy
+## 1. (Optional) Tailnet policy
 
-Add the following to your tailnet policy file (Admin console → Access
+Optionally, ddd the following to your tailnet policy file (Admin console → Access
 controls). It creates a tag for the node, auto-approves it as an exit node so
-you never have to click "approve" in the console, and lets members use it.
+you never have to click "approve" in the console, and lets members use it. Otherwise, you will need to approve this in the machine's settings under "Edit route settings..."
 
 ```jsonc
 {
@@ -55,7 +55,6 @@ Admin console → Settings → Keys → **Generate auth key**:
 | ------------- | ---------- | ------------------------------------------------------ |
 | Reusable      | on         | Render restarts and redeploys the container.           |
 | Ephemeral     | on         | Node is removed from the tailnet when it goes offline. |
-| Pre-approved  | on         | Skips device approval if your tailnet requires it.     |
 | Tags          | `tag:exit` | Ties the node to the policy above.                     |
 | Expiration    | your call  | Only affects *joining*. Rotate it before it expires.   |
 
@@ -101,8 +100,6 @@ docker build -t tailscale-exit-render .
 docker run --rm -e TS_AUTHKEY=tskey-auth-... tailscale-exit-render
 ```
 
-No `--cap-add` is required.
-
 ## Rotating the key
 
 1. Generate a new key (step 2).
@@ -113,7 +110,7 @@ No `--cap-add` is required.
 
 - Exit-node traffic counts against Render's outbound bandwidth allowance.
 - Render assigns the container's public IP. It can change between deploys.
-- Render Starter provides one shared CPU and 512 MB RAM. That is plenty for
+- Render Starter provides half a shared CPU and 512 MB RAM. That is plenty for
   `tailscaled`.
 - Direct WireGuard connections need outbound UDP. If Render's network blocks
   it, Tailscale falls back to DERP relays over TCP 443 and still works.
