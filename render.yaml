@@ -10,7 +10,7 @@ services:
     name: tailscale-exit-node
     runtime: docker
     plan: starter
-    region: virginia            # exit traffic egresses from this region
+    region: ohio            # exit traffic egresses from this region
     dockerfilePath: ./Dockerfile
     dockerContext: .
     autoDeployTrigger: commit
